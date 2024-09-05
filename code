@@ -1,0 +1,521 @@
+import javax.swing.*;      //contains graphic elements
+import java.awt.*;         //layout manager for interface
+import java.awt.event.*;   //allows graphic elements to work
+import java.io.*;          //to save files to KenoFile.txt
+
+/**
+ * Program that lets you play "Keno"
+ * 
+ * @author     Perry, Jett
+ * @assignment ICS 211 Assignment 06
+ * @date       March 01, 2023
+ * @bugs       No bugs.
+ */
+ 
+class Driver {
+   public static void main(String[] arg) throws Exception{
+      Keno1 f = new Keno1();
+      f.initializeGUI( );
+      f.setVisible(true);
+   }
+}
+
+class Keno1 extends JFrame {
+   
+   // Textfield arrays that hold the user selected values and computer values
+   TextField[] selected = new TextField[10];
+   TextField[] answers = new TextField[10];
+   
+   // JButton array that holds the 40 buttons the user interacts with
+   JButton[] buttons = new JButton[40];
+   
+   // Interactive elements of the GUI
+   private JButton buttonPlay = new JButton("Play");
+   private JButton buttonEnd = new JButton("End");
+   private JButton buttonInst = new JButton("Instructions");
+   private JButton buttonReset = new JButton("Reset");
+   private Choice choiceBet = new Choice();
+   private TextField winnings = new TextField();
+   private TextField play = new TextField();
+   
+   // Non-interactive elements of the GUI
+   private JLabel winnings2 = new JLabel("Winnings: ");
+   private JLabel select = new JLabel("Winning #'s");
+   private JLabel bet = new JLabel("Bet: ");
+   private JLabel games = new JLabel("Plays: ");
+    
+   // Constants for the height and width of the Keno GUI
+   final int WIDTH = 1000;
+   final int HEIGHT = 1000;
+   
+   // Variables used throughout the program
+   int i = 0, number = 0, index2 = 0, plays = 0;
+   int index = 1, gaming = 1, system = 0, amount = 0;
+   int winner = 0, multiply = 0, storage = 0, positive = 0, negative = 0;
+   
+   // Variables and array used to randomize numbers for the answers array
+   double randomizedb = 0;
+   int randomize = 0;
+   int[] randomizer = new int[10];
+    
+   public Keno1() {
+      this.setSize(WIDTH, HEIGHT);  
+      this.setTitle("Keno");
+      this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+      this.setVisible(true);
+      this.setResizable(false);
+   }
+   
+   public void initializeGUI() throws Exception {
+      
+      // Add the MyListener inner class under the variable ears
+      ActionListener ears = new MyListener();
+      
+      // Create the main panel as a BorderLayout
+      JPanel panelMain = new JPanel();
+      panelMain.setLayout(new BorderLayout());
+      
+      // Create the center panel as a GridLayout
+      JPanel center = new JPanel();
+      center.setLayout(new GridLayout(10,4));
+      
+      // Fill the center panel with the buttons array
+      for (i = 0; i < buttons.length; i++) {
+         buttons[i] = new JButton(String.valueOf(i + 1));
+         buttons[i].addActionListener(ears);
+         center.add(buttons[i]);
+         buttons[i].setBackground(Color.yellow);
+      }
+      
+      // Create the right panel
+      JPanel right =  new JPanel();
+      
+      // Fill the selected array with N/A, add it to the right panel and setVisiblity to false
+      for (i = 0; i < 10; i++) {
+         selected[i] = new TextField("N/A");
+         selected[i].addActionListener(ears);
+         right.add(selected[i]);
+         selected[i].setVisible(false);
+         selected[i].setEditable(false);
+      }
+      
+      // Create the down panel
+      JPanel down = new JPanel();
+      
+      // Add the select label and the answers array to the down panel
+      down.add(select);
+      for (i = 0; i < 10; i++) {
+         answers[i] = new TextField("N/A");
+         answers[i].addActionListener(ears);
+         down.add(answers[i]);
+         answers[i].setVisible(true);
+         answers[i].setEditable(false);
+      }
+      
+      // Create the left panel
+      JPanel left = new JPanel();
+      
+      // Create the top panel
+      JPanel top = new JPanel();
+      
+      // Add ears to all the interactive GUI elements
+      winnings.addActionListener(ears);
+      buttonInst.addActionListener(ears);
+      buttonPlay.addActionListener(ears);
+      buttonReset.addActionListener(ears);
+      buttonEnd.addActionListener(ears);
+      
+      // Set text for the winnings textField and choiceBet
+      winnings.setText("$0    ");
+      choiceBet.add("10");
+      choiceBet.add("20");
+      choiceBet.add("50");
+      choiceBet.add("100");
+      
+      // Add various labels and interactive elements to the top panel
+      top.add(buttonInst);
+      top.add(games);
+      top.add(play);
+      top.add(winnings2);
+      top.add(winnings);
+      top.add(bet);
+      top.add(choiceBet);
+      top.add(buttonPlay);
+      top.add(buttonReset);
+      top.add(buttonEnd);
+      
+      // Make setEditable(false) and setEnabled(false) to avoid internal errors
+      play.setEditable(false);
+      winnings.setEditable(false);
+      buttonPlay.setEnabled(false);
+      
+      // Add all the created panels to panelMain
+      panelMain.add("Center", center);
+      panelMain.add("North", top);
+      panelMain.add("South", down);
+      panelMain.add("East", right);
+      panelMain.add("West", left);
+      
+      // Add panelMain
+      add(panelMain);
+   }
+   private class MyListener implements ActionListener {
+      public void actionPerformed(ActionEvent event) {
+      
+         // If user clicks on the Instructions button brings up message dialog with instructions
+         if (event.getSource()==buttonInst) {
+            JOptionPane.showMessageDialog (null, "                                                    ~~Welcome to \"Keno Project\" by Jett Perry!~~                                 " +
+                                                 "\n This is a simple game where you and the computer choose 10 numbers. Your goal is to guess as many of the  " +
+                                                 "\n computers numbers as you can! The more you guess, the more money you get!    **see payout chart below**   " +
+                                                 "\n\n                                                              The button color chart is as follows:                                      " +
+                                                 "\n Yellow = unselected, Red = selected, Blue = selected by computer, Green = selected by you and the computer" +
+                                                 "\n\n                                                                    The payout chart is as follows:                                         " +
+                                                 "\n                                                             **You can bet $10, $20, $50 and $100**                                      " +
+                                                 "\n                                                           ~HITS~                   |                   ~PAYOUT~                              " +
+                                                 "\n                                                             0 & 4                     |                       bet * 2                               " +
+                                                 "\n                                                             1 & 2                     |                       bet * 0                               " +
+                                                 "\n                                                                3                         |                       bet * 1                               " +
+                                                 "\n                                                                5                         |                       bet * 3                               " +
+                                                 "\n                                                                6                         |                       bet * 7                               " +
+                                                 "\n                                                                7                         |                       bet * 30                              " +
+                                                 "\n                                                                8                         |                       bet * 200                             " +
+                                                 "\n                                                                9                         |                       bet * 1000                            " +
+                                                 "\n                                                               10                        |                        bet * 10000                           ");
+         }
+         
+         // If user clicks on the Reset button makes all values null and re-enables buttons
+         if (event.getSource()==buttonReset) {
+            // Amount set back to 0 so the play button is disabled
+            amount = 0;
+            for (i = 0; i < buttons.length; i++) {
+               buttons[i].setBackground(Color.yellow);
+               buttons[i].setEnabled(true);
+            }
+            for (i = 0; i < selected.length; i++) {
+               selected[i].setText("N/A");
+               answers[i].setText("N/A");
+            }
+         }
+         for (i = 0; i < buttons.length; i++) {
+            // If user clicks on a button from the buttons array makes color red or yellow
+            if (event.getSource()==buttons[i]) {
+               if (amount != 10) {
+                  // Color is set to red if the button the user clicks on is yellow
+                  if (buttons[i].getBackground()==Color.yellow) {
+                     buttons[i].setBackground(Color.red);
+                     amount++;
+                  }
+                  // Color is set back to yellow under any other circumstance
+                  else {
+                     buttons[i].setBackground(Color.yellow);
+                     amount--;
+                     selected[amount].setText("N/A");
+                  }
+               }
+               // If amount is 10 only changes buttons with red background color
+               else if (buttons[i].getBackground()==Color.red) {
+                  buttons[i].setBackground(Color.yellow);
+                  amount--;
+                  selected[amount].setText("N/A");
+               }
+            }
+         }
+         // If user selected 10 buttons enables buttonPlay      
+         if (amount == 10) {
+            buttonPlay.setEnabled(true);
+         }
+         else {
+            buttonPlay.setEnabled(false);
+         }
+         
+         // Try catch incase file does not save properly
+         try {
+            // Creates KenoFile.txt
+            File outFH = new File("KenoFile.txt");
+            // Saves current game data to KenoFile.txt
+            // boolean set to true so KenoFile progress is not overwritten
+            FileWriter outFW = new FileWriter(outFH, true);
+            
+            // If user clicks play button randomizes answers and compares it to selected
+            if (event.getSource()==buttonPlay) {
+               // Set index to 0 to use in for loop
+               index = 0;
+               // For loop that sets the text of selected to the value of the corresponding button
+               for (i = 0; i < buttons.length; i++) {
+                  if (buttons[i].getBackground()==Color.red) {
+                     selected[index].setText(String.valueOf(i+1));
+                     index++;
+                  }
+               }
+               
+               // Set i = 0 for use in the randomizer below
+               i = 0;
+               // Randomizes the value of the answers array
+               while (i != 10) {
+                  // Randomize a double value from 1-40
+                  randomizedb = 1 + Math.random() * 40;
+                  // Make double value into an int
+                  randomize = (int)randomizedb;
+                  // Add that int into randomizer array
+                  randomizer[i] = randomize;
+                  
+                  // If answers[0] has no value adds it to randomizer since it cannot be duplicate
+                  if (answers[0] == null) {
+                     answers[0].setText(String.valueOf(randomizer[i]));
+                     i++;
+                  }
+                  // If answers[0] does have value, checks if the newly randomized number is equal to any previous ones
+                  if (!(String.valueOf(randomizer[i]).equals(answers[0].getText()))) {
+                     if (!(String.valueOf(randomizer[i]).equals(answers[1].getText()))) {
+                        if (!(String.valueOf(randomizer[i]).equals(answers[2].getText()))) {
+                           if (!(String.valueOf(randomizer[i]).equals(answers[3].getText()))) {
+                              if (!(String.valueOf(randomizer[i]).equals(answers[4].getText()))) {
+                                 if (!(String.valueOf(randomizer[i]).equals(answers[5].getText()))) {
+                                    if (!(String.valueOf(randomizer[i]).equals(answers[6].getText()))) {
+                                       if (!(String.valueOf(randomizer[i]).equals(answers[7].getText()))) {
+                                          if (!(String.valueOf(randomizer[i]).equals(answers[8].getText()))) {
+                                             if (!(String.valueOf(randomizer[i]).equals(answers[9].getText()))) {
+                                                answers[i].setText(String.valueOf(randomizer[i]));
+                                                i++;
+                                             }
+                                          }
+                                       }
+                                    }
+                                 }
+                              }
+                           }
+                        }
+                     }
+                  }
+               }
+               // Increases plays everytime play is pressed for use in saving data
+               plays++;
+               // Sets textField play to the value of plays
+               play.setText(String.valueOf(plays));
+               
+               // Sets button background color to blue where the computer answers are
+               for (i = 0; i < buttons.length; i++) {
+                  if (answers[0].getText().equals(buttons[i].getText())) {
+                     buttons[i].setBackground(Color.blue);
+                  }
+                  else if (answers[1].getText().equals(buttons[i].getText())) {
+                     buttons[i].setBackground(Color.blue);
+                  }
+                  else if (answers[2].getText().equals(buttons[i].getText())) {
+                     buttons[i].setBackground(Color.blue);
+                  }
+                  else if (answers[3].getText().equals(buttons[i].getText())) {
+                     buttons[i].setBackground(Color.blue);
+                  }
+                  else if (answers[4].getText().equals(buttons[i].getText())) {
+                     buttons[i].setBackground(Color.blue);
+                  }
+                  else if (answers[5].getText().equals(buttons[i].getText())) {
+                     buttons[i].setBackground(Color.blue);
+                  }
+                  else if (answers[6].getText().equals(buttons[i].getText())) {
+                     buttons[i].setBackground(Color.blue);
+                  }
+                  else if (answers[7].getText().equals(buttons[i].getText())) {
+                     buttons[i].setBackground(Color.blue);
+                  }
+                  else if (answers[8].getText().equals(buttons[i].getText())) {
+                     buttons[i].setBackground(Color.blue);
+                  }
+                  else if (answers[9].getText().equals(buttons[i].getText())) {
+                     buttons[i].setBackground(Color.blue);
+                  }
+               }
+               
+               // Resets winner back to 0 for use in code below
+               winner = 0;
+               // Sets background color to green where selected and answers are the same
+               // Increases the winner variable by the amount guessed correctly
+               for (i = 0; i < buttons.length; i++) {
+                  if (selected[0].getText().equals(buttons[i].getText())) {
+                     if (buttons[i].getBackground()==Color.blue) {
+                        buttons[i].setBackground(Color.green);
+                        winner++;
+                     }
+                  }
+                  if (selected[1].getText().equals(buttons[i].getText())) {
+                     if (buttons[i].getBackground()==Color.blue) {
+                        buttons[i].setBackground(Color.green);
+                        winner++;
+                     }
+                  }
+                  if (selected[2].getText().equals(buttons[i].getText())) {
+                     if (buttons[i].getBackground()==Color.blue) {
+                        buttons[i].setBackground(Color.green);
+                        winner++;
+                     }
+                  }
+                  if (selected[3].getText().equals(buttons[i].getText())) {
+                     if (buttons[i].getBackground()==Color.blue) {
+                        buttons[i].setBackground(Color.green);
+                        winner++;
+                     }
+                  }
+                  if (selected[4].getText().equals(buttons[i].getText())) {
+                     if (buttons[i].getBackground()==Color.blue) {
+                        buttons[i].setBackground(Color.green);
+                        winner++;
+                     }
+                  }
+                  if (selected[5].getText().equals(buttons[i].getText())) {
+                     if (buttons[i].getBackground()==Color.blue) {
+                        buttons[i].setBackground(Color.green);
+                        winner++;
+                     }
+                  }
+                  if (selected[6].getText().equals(buttons[i].getText())) {
+                     if (buttons[i].getBackground()==Color.blue) {
+                        buttons[i].setBackground(Color.green);
+                        winner++;
+                     }
+                  }
+                  if (selected[7].getText().equals(buttons[i].getText())) {
+                     if (buttons[i].getBackground()==Color.blue) {
+                        buttons[i].setBackground(Color.green);
+                        winner++;
+                     }
+                  }
+                  if (selected[8].getText().equals(buttons[i].getText())) {
+                     if (buttons[i].getBackground()==Color.blue) {
+                        buttons[i].setBackground(Color.green);
+                        winner++;
+                     }
+                  }
+                  if (selected[9].getText().equals(buttons[i].getText())) {
+                     if (buttons[i].getBackground()==Color.blue) {
+                        buttons[i].setBackground(Color.green);
+                        winner++;
+                     }
+                  }
+               }
+               
+               // Creates variables to calculate the amount of money won each round
+               // win gets the value they choose from choiceBet and win2 converts it to an int
+               String win = choiceBet.getSelectedItem();
+               int win2 = Integer.parseInt(win);
+               // Calculates money won based on winnings chart
+               if (winner == 0) {
+                  multiply = win2 * 2;
+               }
+               if (winner == 1) {
+                  multiply = 0 - win2;
+               }
+               if (winner == 2) {
+                  multiply = 0 - win2;
+               }
+               if (winner == 3) {
+                  multiply = win2;
+               }
+               if (winner == 4) {
+                  multiply = win2 * 2;
+               }
+               if (winner == 5) {
+                  multiply = win2 * 3;
+               }
+               if (winner == 6) {
+                  multiply = win2 * 7;
+               }
+               if (winner == 7) {
+                  multiply = win2 * 30;
+               }
+               if (winner == 8) {
+                  multiply = win2 * 200;
+               }
+               if (winner == 9) {
+                  multiply = win2 * 1000;
+               }
+               if (winner == 10) {
+                  multiply = win2 * 10000;
+               }
+               
+               // Stores total amount of money won throughout entire program useage
+               storage = storage + multiply;
+               String calculate = winnings.getText().trim().replace("$", "");
+               int calculate2 = Integer.parseInt(calculate);
+                  // Increases negative or positive depending on if multiply is less than or greater than TextField winnings
+                  if (multiply < calculate2) {
+                     negative++;
+                  }
+                  else {
+                     positive++;
+                  }
+               // Converts total amount of money won to a String
+               String testing = "$" + String.valueOf(storage);
+               // Displays total amount of money won in the winnings TextField then disables buttonPlay and buttons array
+               winnings.setText(testing);
+               buttonPlay.setEnabled(false);
+               for (i = 0; i < buttons.length; i++) {
+                  buttons[i].setEnabled(false);
+               }
+               
+               // Writes individual game data to KenoFile.txt
+               outFW.write("=====================================");
+               // Uses variable gaming to display what individual game the data was collected
+               outFW.write("\n\nGame " + gaming);
+               // Uses choiceBet.getSelectedItem to display how much the user bet
+               outFW.write("\nUser bet: $" + choiceBet.getSelectedItem());
+               outFW.write("\nUser selected: ");
+               // Writes all the numbers the user selected to KenoFile.txt
+               for (i = 0; i < selected.length; i++) {
+                  outFW.write(selected[i].getText() + ", ");
+               }
+               outFW.write("\nComputer selected: ");
+               // Writes all the numbers the computer selected to KenoFile.txt
+               for (i = 0; i < answers.length; i++) {
+                  outFW.write(answers[i].getText() + ", ");
+               }
+               // Writes the amount of winner to show how many numbers you got right
+               outFW.write("\nYou matched: " + winner);
+               // Writes the amount you won or lost in that specific game to KenoFile.txt
+               if (multiply <= 0) {
+                  outFW.write("\nYou lost: $" + multiply + "\n\n");
+                  outFW.close();
+               }
+               else {
+                  outFW.write("\nYou won: $" + multiply + "\n\n");
+                  outFW.close();
+               }
+               // Increases gaming value for use in saving
+               gaming++;
+            }
+            
+            // If user selected buttonEnd disables program and pops up message telling user where progress was saved
+            if (event.getSource()==buttonEnd) {
+               JOptionPane.showMessageDialog (null, "Your progress has been saved to KenoFile.txt");
+               for (i = 0; i < buttons.length; i++) {
+                  buttons[i].setEnabled(false);
+               }
+               buttonPlay.setEnabled(false);
+               buttonReset.setEnabled(false);
+               buttonInst.setEnabled(false);
+               choiceBet.setEnabled(false);
+               buttonEnd.setEnabled(false);
+               
+               // Writes total amount of games played and how many the user won or lost
+               outFW.write("=====================================\n");
+               outFW.write("\nTotal number of games played: " + plays);
+               outFW.write("\nTotal games won: " + positive);
+               outFW.write("\nTotal games lost: " + negative);
+               // If the overall value of the winnings Textfield is <=0 writes "Total lost" else writes "Total won"
+               if (storage <= 0) {
+                  outFW.write("\n\nTotal lost $" + String.valueOf(storage) + "\n\n");
+                  outFW.close();
+               }
+               else {
+                  outFW.write("\n\nTotal won $" + String.valueOf(storage) + "\n\n");
+                  outFW.close();
+               }
+            }
+         }
+         // Catch IOException in the event of a saving error
+         catch (IOException io) {
+            System.out.println("Cannot save file");
+         }
+      }
+   }
+} 
